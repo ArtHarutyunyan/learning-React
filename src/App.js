@@ -14,10 +14,19 @@ function App() {
     setPosts([...posts, newPost]);
   };
 
+  //Get post from child component
+  const removePost = (post) => {
+    setPosts(posts.filter((p) => p.id !== post.id));
+  };
+
   return (
     <div className="App">
       <PostForn create={createPost} />
-      <PostList posts={posts} title={"Post List 1"} />
+      {posts.length !== 0 ? (
+        <PostList remove={removePost} posts={posts} title={"Post about JS"} />
+      ) : (
+        <h1 style={{ textAlign: "center" }}>Posts not found!</h1>
+      )}
     </div>
   );
 }
