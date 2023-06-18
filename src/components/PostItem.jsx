@@ -1,5 +1,5 @@
 import React from "react";
-import MyButton from "./UI/Button/MyButton";
+import MyButton from "./UI/button/MyButton";
 
 function PostItem(props) {
   return (
