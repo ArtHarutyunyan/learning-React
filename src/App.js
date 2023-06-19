@@ -1,52 +1,70 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./styles/App.css";
 import PostList from "./components/PostList";
-import MyButton from "./components/UI/Button/MyButton";
-import MyInput from "./components/UI/Input/MyInput";
-import { useRef } from "react";
+import PostForn from "./components/PostForn";
+import PostFilter from "./components/PostFilter";
+import MyMoal from "./components/UI/modal/MyMoal";
+import MyButton from "./components/UI/button/MyButton";
+import { usePosts } from "./hooks/usePosts";
+import PostServise from "./components/API/PostServise";
+import Loader from "./components/UI/loader/Loader";
 
 function App() {
-  const [posts, setPosts] = useState([
-    { id: 1, title: "JavaScript", body: "Description" },
-    { id: 2, title: "JavaScript 2", body: "Description" },
-    { id: 3, title: "JavaScript 3", body: "Description" },
-  ]);
+  const [posts, setPosts] = useState([]);
 
-  const [post, setPost] = useState({
-    title: "",
-    body: "",
-  });
-  const [body, setBody] = useState("");
+  const [filter, setFilter] = useState({ sort: "", query: "" });
+  const [modal, setModal] = useState(false);
+  const [isPostsLoading, setIsPostsLoading] = useState(false);
 
-  const addNewPost = (e) => {
-    e.preventDefault();
-    setPosts([...posts, { ...post, id: Date.now() }]);
-    setPost({
-      title: "",
-      body: "",
-    });
-    setBody("");
+  const sortedAndSearchedPost = usePosts(posts, filter.sort, filter.query);
+
+  const createPost = (newPost) => {
+    setPosts([...posts, newPost]);
+    setModal(false);
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  async function fetchPosts() {
+    setIsPostsLoading(true);
+    setTimeout(async () => {
+      const posts = await PostServise.getAll();
+      console.log(posts);
+      setPosts(posts);
+      setIsPostsLoading(false);
+    }, 2000);
+  }
+
+  //Get post from child component
+  const removePost = (post) => {
+    setPosts(posts.filter((p) => p.id !== post.id));
   };
 
   return (
     <div className="App">
-      <form>
-        <MyInput
-          onChange={(e) => setPost({ ...post, title: e.target.value })}
-          value={post.title}
-          type="text"
-          placeholder="Post Name"
+      <MyButton style={{ marginTop: 30 }} onClick={() => setModal(true)}>
+        Create New Post
+      </MyButton>
+      <MyMoal visible={modal} setVisible={setModal}>
+        <PostForn create={createPost} />
+      </MyMoal>
+      <hr style={{ margin: "15px 0" }} />
+      <PostFilter filter={filter} setFilter={setFilter} />
+      {isPostsLoading ? (
+        <div
+          style={{ display: "flex", justifyContent: "center", marginTop: 50 }}
+        >
+          <Loader />
+        </div>
+      ) : (
+        <PostList
+          remove={removePost}
+          posts={sortedAndSearchedPost}
+          title={"Post about JS"}
         />
-
-        <MyInput
-          onChange={(e) => setPost({ ...post, body: e.target.value })}
-          value={post.body}
-          type="text"
-          placeholder="Post Description"
-        />
-        <MyButton onClick={addNewPost}>Create Post</MyButton>
-      </form>
-      <PostList posts={posts} title={"Post List 1"} />
+      )}
     </div>
   );
 }
